@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="icon" href="https://fav.farm/⌚"/>
+        <title>リマインダー3つ</title>
+    </head>
+    <body>
+        <h2>フェリーチェック1</h2>
+        <input type="time" class="reminderTime" data-order="0">
+        <button onclick="startWatching(this)">登録</button>
+
+        <h2>フェリーチェック2</h2>
+        <input type="time" class="reminderTime" data-order="1">
+        <button onclick="startWatching(this)">登録</button>
+
+        <h2>フェリーチェック3</h2>
+        <input type="time" class="reminderTime" data-order="2">
+        <button onclick="startWatching(this)">登録</button>
+
+        <script>
+
+            const targets = [];
+
+            Notification.requestPermission().then(permission => {
+                if (permission !== "granted") {
+                    alert("通知が許可されていません");                    
+                }
+            });
+
+            function startWatching (buttonElement) {
+                const input = buttonElement.previousElementSibling;
+                const timeInput = input.value;
+                const order = input.dataset.order;
+
+                if (!timeInput) {
+                    return alert("時刻を入力");
+                }
+
+                const [hour,minute] = timeInput.split(":").map(Number);
+
+                targets[order] = {
+                    hour,
+                    minute,
+                    triggered: false
+                };
+
+                alert(`記録しました:${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`);
+
+                if(!window._watchingInterval) {
+                    window._watchingInterval = setInterval(checkTime, 1000);
+                }
+
+            }
+
+            function checkTime () {
+                let now = new Date();
+                let nowHour = now.getHours();
+                let nowMinute = now.getMinutes();
+
+                for (target of targets) {
+                    if(nowHour === target.hour && nowMinute === target.minute && !target.triggered){
+                        target.triggered = true;
+                        if(Notification.permission === "granted"){
+
+                            new Notification("リマインダー",{
+                                body: `フェリーチェックの時間です（${target.hour}:${target.minute}）`
+                            });
+                        };
+                    };
+                }
+            }
+
+        </script>
+
+
+    </body>
+</html>
